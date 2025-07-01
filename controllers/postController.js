@@ -33,11 +33,17 @@ const getPost = async (req, res) => {
 
 // Create a new post
 const createPost = async (req, res) => {
-  const { content } = req.body;
+  const { title, content, user_id } = req.body;
+
+  // Validate input
+  if (!title || !content || !user_id) {
+    return res
+      .status(400)
+      .json({ error: "Title, content, and user_id are required." });
+  }
 
   try {
-    const user_id = req.user._id;
-    const post = await Post.create({ content, user_id });
+    const post = await Post.create({ title, content, user_id });
     res.status(200).json(post);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -88,7 +94,7 @@ module.exports = {
   getAllPosts,
   getPostsByUser,
   getPost,
+  updatePost,
   createPost,
   deletePost,
-  updatePost,
 };
