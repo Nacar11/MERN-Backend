@@ -16,8 +16,8 @@ const HTTP_STATUS = {
 };
 
 const TOKEN_EXPIRY = {
-  ACCESS_TOKEN: '15m',
-  REFRESH_TOKEN: '7d',
+  ACCESS_TOKEN: '7d',
+  REFRESH_TOKEN: '30d',
   PASSWORD_RESET: '1h',
 };
 
