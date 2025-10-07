@@ -16,6 +16,15 @@ const postSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
+    images: [{
+      fileId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'uploads.files' // Reference to GridFS files collection
+      },
+      filename: String,
+      contentType: String,
+      size: Number
+    }]
   },
   { timestamps: true }
 );

@@ -1,0 +1,37 @@
+/**
+ * Application constants
+ */
+
+const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  INTERNAL_SERVER_ERROR: 500,
+};
+
+const TOKEN_EXPIRY = {
+  ACCESS_TOKEN: '15m',
+  REFRESH_TOKEN: '7d',
+  PASSWORD_RESET: '1h',
+};
+
+const BCRYPT_SALT_ROUNDS = 10;
+
+const RATE_LIMIT = {
+  WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  MAX_REQUESTS: 100,
+  AUTH_MAX_REQUESTS: 5, // Stricter for auth endpoints
+};
+
+module.exports = {
+  HTTP_STATUS,
+  TOKEN_EXPIRY,
+  BCRYPT_SALT_ROUNDS,
+  RATE_LIMIT,
+};
