@@ -70,6 +70,58 @@ if (process.env.NODE_ENV !== 'production') {
 // app.use(globalLimiter);
 
 /**
+ * Database Initialization for Serverless (Vercel)
+ * This middleware ensures DB is connected before handling requests
+ */
+let isInitialized = false;
+let initializationPromise = null;
+
+const initializeApp = async () => {
+  // Return existing promise if initialization is in progress
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+
+  // Return immediately if already initialized
+  if (isInitialized) {
+    return Promise.resolve();
+  }
+
+  // Create initialization promise
+  initializationPromise = (async () => {
+    try {
+      await connectDB();
+      const { initGridFS } = require('./config/gridfs');
+      initGridFS();
+      isInitialized = true;
+      console.log('✅ Database and GridFS initialized for serverless');
+    } catch (error) {
+      console.error('❌ Failed to initialize app:', error);
+      initializationPromise = null; // Reset to allow retry
+      throw error;
+    }
+  })();
+
+  return initializationPromise;
+};
+
+// Apply initialization middleware only in Vercel environment
+if (process.env.VERCEL) {
+  app.use(async (req, res, next) => {
+    try {
+      await initializeApp();
+      next();
+    } catch (error) {
+      console.error('Initialization error:', error);
+      return res.status(503).json({
+        status: 'error',
+        message: 'Service temporarily unavailable. Database connection failed.',
+      });
+    }
+  });
+}
+
+/**
  * Root Endpoint
  */
 app.get('/', (req, res) => {
@@ -163,23 +215,8 @@ const startServer = async () => {
   }
 };
 
-// Initialize database for Vercel serverless
-const initializeApp = async () => {
-  try {
-    await connectDB();
-    const { initGridFS } = require('./config/gridfs');
-    initGridFS();
-    console.log('Database and GridFS initialized for serverless');
-  } catch (error) {
-    console.error('Failed to initialize app:', error);
-  }
-};
-
-// For Vercel serverless deployment
-if (process.env.VERCEL) {
-  initializeApp();
-} else {
-  // Start the server for local development
+// Start server for local development (not Vercel)
+if (!process.env.VERCEL) {
   startServer();
 }
 
