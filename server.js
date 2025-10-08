@@ -105,21 +105,24 @@ const initializeApp = async () => {
   return initializationPromise;
 };
 
-// Apply initialization middleware only in Vercel environment
-if (process.env.VERCEL) {
-  app.use(async (req, res, next) => {
-    try {
-      await initializeApp();
-      next();
-    } catch (error) {
-      console.error('Initialization error:', error);
-      return res.status(503).json({
-        status: 'error',
-        message: 'Service temporarily unavailable. Database connection failed.',
-      });
-    }
-  });
-}
+/**
+ * Database Initialization Middleware
+ * Ensures database is connected before handling any requests
+ * This runs on every request in serverless, but caches the connection
+ */
+app.use(async (req, res, next) => {
+  try {
+    await initializeApp();
+    next();
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    return res.status(503).json({
+      status: 'error',
+      message: 'Service temporarily unavailable. Database connection failed.',
+      details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+});
 
 /**
  * Root Endpoint
@@ -215,8 +218,9 @@ const startServer = async () => {
   }
 };
 
-// Start server for local development (not Vercel)
-if (!process.env.VERCEL) {
+// Start server for local development
+// Only start if this file is run directly (not imported by Vercel)
+if (require.main === module) {
   startServer();
 }
 
