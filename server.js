@@ -122,7 +122,24 @@ const startServer = async () => {
   }
 };
 
-// Start the server
-startServer();
+// Initialize database for Vercel serverless
+const initializeApp = async () => {
+  try {
+    await connectDB();
+    const { initGridFS } = require('./config/gridfs');
+    initGridFS();
+    console.log('Database and GridFS initialized for serverless');
+  } catch (error) {
+    console.error('Failed to initialize app:', error);
+  }
+};
+
+// For Vercel serverless deployment
+if (process.env.VERCEL) {
+  initializeApp();
+} else {
+  // Start the server for local development
+  startServer();
+}
 
 module.exports = app;
