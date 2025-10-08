@@ -70,6 +70,52 @@ if (process.env.NODE_ENV !== 'production') {
 // app.use(globalLimiter);
 
 /**
+ * Database Initialization for Serverless
+ * Ensures database is connected before handling requests
+ */
+let dbConnected = false;
+let dbPromise = null;
+
+const ensureDbConnected = async () => {
+  // If already connected, return immediately
+  if (dbConnected) return;
+  
+  // If connection in progress, wait for it
+  if (dbPromise) return dbPromise;
+  
+  // Start new connection
+  dbPromise = (async () => {
+    try {
+      await connectDB();
+      const { initGridFS } = require('./config/gridfs');
+      initGridFS();
+      dbConnected = true;
+      console.log('✅ Database and GridFS initialized for serverless');
+    } catch (error) {
+      console.error('❌ Database initialization failed:', error);
+      dbPromise = null; // Reset to allow retry
+      throw error;
+    }
+  })();
+  
+  return dbPromise;
+};
+
+// Middleware: Ensure DB is ready before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await ensureDbConnected();
+    next();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(503).json({
+      status: 'error',
+      message: 'Service temporarily unavailable. Database connection failed.'
+    });
+  }
+});
+
+/**
  * Root Endpoint
  */
 app.get('/', (req, res) => {
@@ -163,7 +209,10 @@ const startServer = async () => {
   }
 };
 
-// Start the server
-startServer();
+// Only start server if running locally (not in Vercel)
+// In Vercel, the app is imported and Vercel handles the HTTP server
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;
