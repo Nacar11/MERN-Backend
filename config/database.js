@@ -5,18 +5,10 @@ const mongoose = require('mongoose');
  */
 const connectDB = async () => {
   try {
-    // Skip if already connected (important for serverless)
-    if (mongoose.connection.readyState === 1) {
-      console.log('MongoDB already connected');
-      return mongoose.connection;
-    }
-
     const options = {
       maxPoolSize: 10,
-      minPoolSize: 2,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      family: 4, // Use IPv4, skip trying IPv6
     };
 
     const conn = await mongoose.connect(process.env.MONGO_URI, options);

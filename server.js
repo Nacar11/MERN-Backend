@@ -70,61 +70,6 @@ if (process.env.NODE_ENV !== 'production') {
 // app.use(globalLimiter);
 
 /**
- * Database Initialization for Serverless (Vercel)
- * This middleware ensures DB is connected before handling requests
- */
-let isInitialized = false;
-let initializationPromise = null;
-
-const initializeApp = async () => {
-  // Return existing promise if initialization is in progress
-  if (initializationPromise) {
-    return initializationPromise;
-  }
-
-  // Return immediately if already initialized
-  if (isInitialized) {
-    return Promise.resolve();
-  }
-
-  // Create initialization promise
-  initializationPromise = (async () => {
-    try {
-      await connectDB();
-      const { initGridFS } = require('./config/gridfs');
-      initGridFS();
-      isInitialized = true;
-      console.log('✅ Database and GridFS initialized for serverless');
-    } catch (error) {
-      console.error('❌ Failed to initialize app:', error);
-      initializationPromise = null; // Reset to allow retry
-      throw error;
-    }
-  })();
-
-  return initializationPromise;
-};
-
-/**
- * Database Initialization Middleware
- * Ensures database is connected before handling any requests
- * This runs on every request in serverless, but caches the connection
- */
-app.use(async (req, res, next) => {
-  try {
-    await initializeApp();
-    next();
-  } catch (error) {
-    console.error('❌ Database initialization failed:', error);
-    return res.status(503).json({
-      status: 'error',
-      message: 'Service temporarily unavailable. Database connection failed.',
-      details: process.env.NODE_ENV !== 'production' ? error.message : undefined
-    });
-  }
-});
-
-/**
  * Root Endpoint
  */
 app.get('/', (req, res) => {
@@ -218,10 +163,7 @@ const startServer = async () => {
   }
 };
 
-// Start server for local development
-// Only start if this file is run directly (not imported by Vercel)
-if (require.main === module) {
-  startServer();
-}
+// Start the server
+startServer();
 
 module.exports = app;
