@@ -45,6 +45,22 @@ if (process.env.NODE_ENV !== 'production') {
 // app.use(globalLimiter);
 
 /**
+ * Root Endpoint
+ */
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Social Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      users: '/api/user',
+      posts: '/api/posts'
+    }
+  });
+});
+
+/**
  * Health Check Endpoint
  */
 app.get('/health', (req, res) => {
