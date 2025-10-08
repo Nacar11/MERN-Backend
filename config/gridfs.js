@@ -11,6 +11,11 @@ let gridfsBucket;
 const initGridFS = () => {
   const conn = mongoose.connection;
   
+  // Check if connection is ready
+  if (!conn.db) {
+    throw new Error('MongoDB connection not ready. Cannot initialize GridFS.');
+  }
+  
   // Initialize GridFS stream
   gfs = Grid(conn.db, mongoose.mongo);
   gfs.collection('uploads'); // Collection name for files
